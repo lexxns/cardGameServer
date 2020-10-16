@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -20,9 +21,43 @@ var events = neffos.Namespaces{
 	},
 }
 
+// RoomState - roomState
+type RoomState struct {
+	Cards []Card `json:"cards"`
+}
+
+// Card - card
+type Card struct {
+	Name string `json:"name"`
+}
+
+func newCard(name string) *Card {
+	c := Card{Name: name}
+	return &c
+}
+
+func newRoomState(cards []Card) *RoomState {
+	rs := RoomState{Cards: cards}
+	return &rs
+}
+
 //TODO Return current room state
 func roomState() []byte {
-	return []byte("some_card_name")
+	state := RoomState{
+		Cards: []Card{
+			{Name: "card 1"},
+			{Name: "card 2"},
+			{Name: "card 3"},
+		},
+	}
+	b, err := json.Marshal(state)
+
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+
+	return b
 }
 
 func createMessage(msg neffos.Message, event string, body []byte) neffos.Message {
