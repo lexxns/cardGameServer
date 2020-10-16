@@ -23,7 +23,8 @@ var events = neffos.Namespaces{
 
 // RoomState - roomState
 type RoomState struct {
-	Cards []Card `json:"cards"`
+	Hand  []Card `json:"hand"`
+	Field []Card `json:"field"`
 }
 
 // Card - card
@@ -31,23 +32,18 @@ type Card struct {
 	Name string `json:"name"`
 }
 
-func newCard(name string) *Card {
-	c := Card{Name: name}
-	return &c
-}
-
-func newRoomState(cards []Card) *RoomState {
-	rs := RoomState{Cards: cards}
-	return &rs
-}
-
 //TODO Return current room state
 func roomState() []byte {
 	state := RoomState{
-		Cards: []Card{
+		Hand: []Card{
 			{Name: "card 1"},
 			{Name: "card 2"},
 			{Name: "card 3"},
+		},
+		Field: []Card{
+			{Name: "card 4"},
+			{Name: "card 5"},
+			{Name: "card 6"},
 		},
 	}
 	b, err := json.Marshal(state)
