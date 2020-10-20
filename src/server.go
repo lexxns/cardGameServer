@@ -1,10 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
+	sid "github.com/chilts/sid"
 	"github.com/gorilla/websocket"
 	"github.com/kataras/neffos"
 	"github.com/kataras/neffos/gorilla"
@@ -21,41 +21,6 @@ var events = neffos.Namespaces{
 	},
 }
 
-// RoomState - roomState
-type RoomState struct {
-	Hand  []Card `json:"hand"`
-	Field []Card `json:"field"`
-}
-
-// Card - card
-type Card struct {
-	Name string `json:"name"`
-}
-
-//TODO Return current room state
-func roomState() []byte {
-	state := RoomState{
-		Hand: []Card{
-			{Name: "card 1"},
-			{Name: "card 2"},
-			{Name: "card 3"},
-		},
-		Field: []Card{
-			{Name: "card 4"},
-			{Name: "card 5"},
-			{Name: "card 6"},
-		},
-	}
-	b, err := json.Marshal(state)
-
-	if err != nil {
-		log.Println(err)
-		return nil
-	}
-
-	return b
-}
-
 func createMessage(msg neffos.Message, event string, body []byte) neffos.Message {
 	return neffos.Message{
 		Namespace: msg.Namespace,
@@ -66,13 +31,15 @@ func createMessage(msg neffos.Message, event string, body []byte) neffos.Message
 }
 
 func onRoomJoined(c *neffos.NSConn, msg neffos.Message) error {
-	c.Emit("state", roomState())
+	newRoom(msg.Room)
+	c.Emit("state", roomStateMessage(msg.Room))
 	return nil
 }
 
 func onConnect(c *neffos.NSConn, msg neffos.Message) error {
-	//// TODO: Create a room or find an existing one
-	roomName := []byte("some_room_name")
+	//// TODO: Find a way of getting room id's to clients
+	//// So existing rooms can be joined
+	roomName := []byte(sid.Id())
 	c.Emit("room", roomName)
 	return nil
 }
@@ -82,6 +49,8 @@ func startServer() {
 
 	router := http.NewServeMux()
 	router.Handle("/game", websocketServer)
+
+	initStore()
 
 	log.Println("Serving websockets on localhost:8080/game")
 	log.Fatal(http.ListenAndServe(":8080", router))
